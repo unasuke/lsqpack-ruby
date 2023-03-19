@@ -1,0 +1,22 @@
+PATH
+  remote: .
+  specs:
+    lsqpack (0.1.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    rake (13.0.6)
+    rake-compiler (1.2.0)
+      rake
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  lsqpack!
+  rake (~> 13.0)
+  rake-compiler
+
+BUNDLED WITH
+   2.3.26
