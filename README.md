@@ -1,22 +1,25 @@
 # Lsqpack
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/lsqpack`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+lsqpack-ruby is a wrapper gem of the [litespeedtech/ls-qpack](https://github.com/litespeedtech/ls-qpack) library. It strongly influenced by [pylsqpack](https://github.com/aiortc/pylsqpack).
+It strongly influenced by pylsqpack, so it has same api of pylsqpack.
 
 ## Installation
 
 Install the gem and add to the application's Gemfile by executing:
 
-    $ bundle add lsqpack
+```sh
+$ bundle add lsqpack
+```
 
 If bundler is not being used to manage dependencies, install the gem by executing:
 
-    $ gem install lsqpack
+```sh
+$ gem install lsqpack
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+See also <https://pylsqpack.readthedocs.io/en/latest/>
 
 ## Development
 
@@ -26,4 +29,8 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/unasuke/lsqpack.
+Bug reports and pull requests are welcome on GitHub at https://github.com/unasuke/lsqpack-ruby.
+
+## Acknowledgement
+* <https://github.com/litespeedtech/ls-qpack>
+* <https://github.com/aiortc/pylsqpack>
