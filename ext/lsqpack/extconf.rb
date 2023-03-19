@@ -11,7 +11,7 @@ Dir.chdir(repo_root) do
   Dir.chdir("ls-qpack") do
     puts(system("git status"))
     system("cmake .", exception: true)
-    syetem("make", exception: true)
+    system("make", exception: true)
   end
 end
 
