@@ -9,8 +9,9 @@ $LDFLAGS = "-lls-qpack -L#{File.join(repo_root, "ls-qpack")}"
 
 Dir.chdir(repo_root) do
   Dir.chdir("ls-qpack") do
-    `cmake .`
-    `make`
+    puts(system("git status"))
+    system("cmake .", exception: true)
+    syetem("make", exception: true)
   end
 end
 
