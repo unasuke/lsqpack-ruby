@@ -339,18 +339,13 @@ VALUE lsqpackrb_enc_encode(VALUE self, VALUE stream_id, VALUE headers) {
 
     enc_len = ENCODER_BUF_SIZE - enc_off;
     header_len = HEADER_BUF_SIZE - header_off;
-    // printf("==========name %s, len %d\n", name, name_len);
-    // printf("==========value %s, len %d\n", value, value_len);
-    // printf("==========enc_len(init) %d\n", enc_len);
     if (lsqpack_enc_encode(&data->enc, data->encoder_buf + enc_off, &enc_len, data->header_buf + header_off,
                            &header_len, name, name_len, value, value_len, 0) != LQES_OK) {
       rb_raise(rb_eError, "lsqpack_enc_encode failed");
       return NULL;
     }
-    // printf("==========enc_len %d\n", enc_len);
     enc_off += enc_len;
     header_off += header_len;
-    // printf("==========enc_off %d\n", enc_off);
   }
 
   prefix_len = lsqpack_enc_end_header(&data->enc, data->prefix_buf, PREFIX_MAX_SIZE, NULL);
