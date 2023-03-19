@@ -1,6 +1,8 @@
 #include "lsqpack.h"
-#include "ls-qpack/lsqpack.h"
+
 #include <stdio.h>
+
+#include "ls-qpack/lsqpack.h"
 
 #define HEADER_BUF_SIZE 4096
 #define ENCODER_BUF_SIZE 4096
@@ -18,15 +20,15 @@ VALUE rb_eStreamBlocked;
 
 struct header_block {
   STAILQ_ENTRY(header_block) entries;
-  int blocked:1;
+  int blocked : 1;
   unsigned char* data;
   size_t data_len;
   const unsigned char* data_ptr;
-  struct lsqpack_header_list *hlist;
+  struct lsqpack_header_list* hlist;
   uint64_t stream_id;
 };
 
-static struct header_block *header_block_new(size_t stream_id, const unsigned char* data, size_t data_len) {
+static struct header_block* header_block_new(size_t stream_id, const unsigned char* data, size_t data_len) {
   struct header_block* hblock = malloc(sizeof(struct header_block));
   memset(hblock, 0, sizeof(*hblock));
   hblock->data = malloc(data_len);
@@ -41,7 +43,7 @@ static void header_block_free(struct header_block* hblock) {
   free(hblock->data);
   hblock->data = 0;
   hblock->data_ptr = 0;
-  if(hblock->hlist) {
+  if (hblock->hlist) {
     lsqpack_dec_destroy_header_list(hblock->hlist);
     hblock->hlist = 0;
   }
@@ -77,7 +79,7 @@ typedef struct {
 } DecoderObj;
 
 size_t lsqpackrb_dec_size(DecoderObj* data) {
-  return sizeof(DecoderObj); // Is it correct?
+  return sizeof(DecoderObj);  // Is it correct?
 }
 
 void lsqpackrb_dec_free(DecoderObj* data) {
@@ -92,14 +94,15 @@ void lsqpackrb_dec_free(DecoderObj* data) {
 }
 
 static const rb_data_type_t decoder_data_type = {
-  .wrap_struct_name = "lsqpack_dec_rb",
-  .function = {
-    .dmark = NULL,
-    .dfree = lsqpackrb_dec_free,
-    .dsize = lsqpackrb_dec_size,
-  },
-  .data = NULL,
-  .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+    .wrap_struct_name = "lsqpack_dec_rb",
+    .function =
+        {
+            .dmark = NULL,
+            .dfree = lsqpackrb_dec_free,
+            .dsize = lsqpackrb_dec_size,
+        },
+    .data = NULL,
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
 VALUE lsqpackrb_dec_alloc(VALUE self) {
@@ -107,13 +110,12 @@ VALUE lsqpackrb_dec_alloc(VALUE self) {
   return TypedData_Wrap_Struct(self, &decoder_data_type, data);
 }
 
-
-VALUE lsqpackrb_dec_init(int argc, VALUE *argv, VALUE self) {
+VALUE lsqpackrb_dec_init(int argc, VALUE* argv, VALUE self) {
   DecoderObj* data;
   TypedData_Get_Struct(self, DecoderObj, &decoder_data_type, data);
 
   VALUE hash;
-  hash = rb_check_hash_type(argv[argc-1]);
+  hash = rb_check_hash_type(argv[argc - 1]);
   unsigned int max_tbl_capa, blked_streams;
   ID table[2];
   VALUE values[2];
@@ -127,7 +129,6 @@ VALUE lsqpackrb_dec_init(int argc, VALUE *argv, VALUE self) {
   STAILQ_INIT(&data->pending_blocks);
   return self;
 }
-
 
 VALUE lsqpackrb_dec_feed_encoder(VALUE self, VALUE data) {
   DecoderObj* dec;
@@ -146,7 +147,7 @@ VALUE lsqpackrb_dec_feed_encoder(VALUE self, VALUE data) {
 
   VALUE list = rb_ary_new();
   STAILQ_FOREACH(hblock, &dec->pending_blocks, entries) {
-    if(!hblock->blocked) {
+    if (!hblock->blocked) {
       VALUE val = LONG2NUM(hblock->stream_id);
       rb_ary_push(list, val);
     }
@@ -176,17 +177,8 @@ VALUE lsqpackrb_dec_feed_header(VALUE self, VALUE stream_id, VALUE data) {
     }
   }
   hblock = header_block_new(strm_id, feed_data, feed_data_len);
-  status = lsqpack_dec_header_in(
-    &dec->dec,
-    hblock,
-    strm_id,
-    hblock->data_len,
-    &hblock->data_ptr,
-    hblock->data_len,
-    &hblock->hlist,
-    dec->decoder_buf,
-    &dec_len
-  );
+  status = lsqpack_dec_header_in(&dec->dec, hblock, strm_id, hblock->data_len, &hblock->data_ptr, hblock->data_len,
+                                 &hblock->hlist, dec->decoder_buf, &dec_len);
   if (status == LQRHS_BLOCKED || status == LQRHS_NEED) {
     hblock->blocked = 1;
     STAILQ_INSERT_TAIL(&dec->pending_blocks, hblock, entries);
@@ -213,14 +205,14 @@ VALUE lsqpackrb_dec_resume_header(VALUE self, VALUE stream_id) {
   uint64_t strm_id;
   size_t dec_len = DECODER_BUF_SIZE;
   enum lsqpack_read_header_status status;
-  struct header_block *hblock;
+  struct header_block* hblock;
   int found = 0;
 
   Check_Type(stream_id, T_FIXNUM);
   strm_id = NUM2LONG(stream_id);
 
   STAILQ_FOREACH(hblock, &dec->pending_blocks, entries) {
-    if(hblock->stream_id == strm_id) {
+    if (hblock->stream_id == strm_id) {
       found = 1;
       break;
     }
@@ -232,15 +224,9 @@ VALUE lsqpackrb_dec_resume_header(VALUE self, VALUE stream_id) {
   if (hblock->blocked) {
     status = LQRHS_BLOCKED;
   } else {
-    status = lsqpack_dec_header_read(
-      &dec->dec,
-      hblock,
-      &hblock->data_ptr,
-      hblock->data_len - (hblock->data_ptr - hblock->data),
-      &hblock->hlist,
-      dec->decoder_buf,
-      &dec_len
-    );
+    status = lsqpack_dec_header_read(&dec->dec, hblock, &hblock->data_ptr,
+                                     hblock->data_len - (hblock->data_ptr - hblock->data), &hblock->hlist,
+                                     dec->decoder_buf, &dec_len);
   }
 
   if (status == LQRHS_BLOCKED || status == LQRHS_NEED) {
@@ -261,8 +247,6 @@ VALUE lsqpackrb_dec_resume_header(VALUE self, VALUE stream_id) {
   return tuple;
 }
 
-
-
 typedef struct {
   struct lsqpack_enc enc;
   unsigned char header_buf[HEADER_BUF_SIZE];
@@ -270,9 +254,7 @@ typedef struct {
   unsigned char prefix_buf[PREFIX_MAX_SIZE];
 } EncoderObj;
 
-size_t lsqpackrb_enc_size(EncoderObj* data) {
-  return sizeof(EncoderObj);
-}
+size_t lsqpackrb_enc_size(EncoderObj* data) { return sizeof(EncoderObj); }
 
 void lsqpackrb_enc_free(EncoderObj* data) {
   lsqpack_enc_cleanup(&data->enc);
@@ -280,14 +262,15 @@ void lsqpackrb_enc_free(EncoderObj* data) {
 }
 
 static const rb_data_type_t encoder_data_type = {
-  .wrap_struct_name = "lsqpack_enc_rb",
-  .function = {
-    .dmark = NULL,
-    .dfree = lsqpackrb_enc_free,
-    .dsize = lsqpackrb_enc_size,
-  },                
-  .data = NULL,
-  .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+    .wrap_struct_name = "lsqpack_enc_rb",
+    .function =
+        {
+            .dmark = NULL,
+            .dfree = lsqpackrb_enc_free,
+            .dsize = lsqpackrb_enc_size,
+        },
+    .data = NULL,
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
 VALUE lsqpackrb_enc_alloc(VALUE self) {
@@ -311,7 +294,8 @@ VALUE lsqpackrb_enc_apply_settings(VALUE self, VALUE rb_max_table_capacity, VALU
   unsigned char stdc_buf[LSQPACK_LONGEST_SDTC];
   size_t stdc_buf_len = sizeof(stdc_buf);
 
-  if(lsqpack_enc_init(&data->enc, NULL, max_table_capacity, max_table_capacity, blocked_streams, LSQPACK_ENC_OPT_STAGE_2, stdc_buf, &stdc_buf_len) != 0) {
+  if (lsqpack_enc_init(&data->enc, NULL, max_table_capacity, max_table_capacity, blocked_streams,
+                       LSQPACK_ENC_OPT_STAGE_2, stdc_buf, &stdc_buf_len) != 0) {
     rb_raise(rb_eError, "lsqpack_enc_init failed");
     return NULL;
   }
@@ -339,7 +323,7 @@ VALUE lsqpackrb_enc_encode(VALUE self, VALUE stream_id, VALUE headers) {
   }
 
   for (int i = 0; i < rb_array_len(headers); i++) {
-   VALUE entry =  rb_ary_entry(headers, i);
+    VALUE entry = rb_ary_entry(headers, i);
     if (rb_array_len(entry) != 2) {
       // no headers present
       rb_raise(rb_eError, "Each header entry must be include 2 elements");
@@ -358,10 +342,8 @@ VALUE lsqpackrb_enc_encode(VALUE self, VALUE stream_id, VALUE headers) {
     // printf("==========name %s, len %d\n", name, name_len);
     // printf("==========value %s, len %d\n", value, value_len);
     // printf("==========enc_len(init) %d\n", enc_len);
-    if (lsqpack_enc_encode(&data->enc,
-                            data->encoder_buf + enc_off, &enc_len,
-                            data->header_buf + header_off, &header_len,
-                            name, name_len, value, value_len, 0) != LQES_OK) {
+    if (lsqpack_enc_encode(&data->enc, data->encoder_buf + enc_off, &enc_len, data->header_buf + header_off,
+                           &header_len, name, name_len, value, value_len, 0) != LQES_OK) {
       rb_raise(rb_eError, "lsqpack_enc_encode failed");
       return NULL;
     }
@@ -373,8 +355,8 @@ VALUE lsqpackrb_enc_encode(VALUE self, VALUE stream_id, VALUE headers) {
 
   prefix_len = lsqpack_enc_end_header(&data->enc, data->prefix_buf, PREFIX_MAX_SIZE, NULL);
   if (prefix_len <= 0) {
-      rb_raise(rb_eError, "lsqpack_enc_end_header failed");
-      return NULL;
+    rb_raise(rb_eError, "lsqpack_enc_end_header failed");
+    return NULL;
   }
   prefix_off = PREFIX_MAX_SIZE - prefix_len;
   memcpy(data->header_buf + prefix_off, data->prefix_buf, prefix_len);
@@ -391,23 +373,20 @@ void lsqpackrb_enc_feed_decoder(VALUE self, VALUE rb_data) {
   int feed_data_len = RSTRING_LEN(rb_data);
 
   if (lsqpack_enc_decoder_in(&data->enc, feed_data, feed_data_len) < 0) {
-      rb_raise(rb_eDecoderStreamErr, "lsqpack_enc_decoder_in failed");
-      return NULL;
+    rb_raise(rb_eDecoderStreamErr, "lsqpack_enc_decoder_in failed");
+    return NULL;
   }
   return NULL;
 }
 
-
-void
-Init_lsqpack(void)
-{
+void Init_lsqpack(void) {
   rb_mLsqpack = rb_define_module("Lsqpack");
   rb_eError = rb_define_class_under(rb_mLsqpack, "Error", rb_eStandardError);
   rb_eDecompressionFailed = rb_define_class_under(rb_mLsqpack, "DecompressionFailed", rb_eError);
   rb_eDecoderStreamErr = rb_define_class_under(rb_mLsqpack, "DecoderStreamError", rb_eError);
   rb_eEncoderStreamErr = rb_define_class_under(rb_mLsqpack, "EncoderStreamError", rb_eError);
   rb_eStreamBlocked = rb_define_class_under(rb_mLsqpack, "StreamBlocked", rb_eError);
-  
+
   // Encoder
   rb_clsEncoder = rb_define_class_under(rb_mLsqpack, "Encoder", rb_cObject);
   rb_define_alloc_func(rb_clsEncoder, lsqpackrb_enc_alloc);
