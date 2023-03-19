@@ -1,4 +1,29 @@
+# See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
 module Lsqpack
   VERSION: String
-  # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+  class Error < StandardError
+  end
+  class DecompressonFailed < Error
+  end
+  class DecoderStreamError < Error
+  end
+  class EncoderStreamError < Error
+  end
+  class StreamBlocked < Error
+  end
+
+  class Decoder
+    def initialize: (?max_table_capacity: Integer, ?blocked_streams: Integer) -> void
+    def feed_encoder: (String data) -> Array[Integer]
+    def feed_header: (Integer stream_id, String data) -> Array[[String, String]]
+    def resume_header: (Integer stream_id) -> Array[[String, String]]
+  end
+
+  class Encoder
+    def initialize: () -> void
+    def encode: (Integer stream_id, Array[[String, String]] headers) -> [String, String]
+    def feed_decoder: (String data) -> void
+  end
 end
