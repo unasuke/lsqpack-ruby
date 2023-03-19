@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "A wrapper gem of the ls-qpack library. It strongly influenced by pylsqpack. It has same api of pylsqpack."
   spec.homepage = "https://github.com/unasuke/lsqpack-ruby"
   spec.required_ruby_version = ">= 2.6.0"
-  spec.license = ["MIT"]
+  spec.licenses = ["MIT"]
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
