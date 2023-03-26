@@ -361,7 +361,7 @@ VALUE lsqpackrb_enc_encode(VALUE self, VALUE stream_id, VALUE headers) {
   return tuple;
 }
 
-void lsqpackrb_enc_feed_decoder(VALUE self, VALUE rb_data) {
+VALUE lsqpackrb_enc_feed_decoder(VALUE self, VALUE rb_data) {
   EncoderObj* data;
   TypedData_Get_Struct(self, EncoderObj, &encoder_data_type, data);
   char* feed_data = StringValuePtr(rb_data);
